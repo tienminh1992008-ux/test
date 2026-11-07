@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Biến động giá xăng dầu thế giới 2026</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#070a12; --txt:#f1f5f9; --mute:#94a3b8; --fire:#f97316; --neon:#06b6d4; }
+  html, body { margin:0; height:100%; overflow:hidden; background:var(--bg); color:var(--txt);
+               font-family:'Lexend', system-ui, sans-serif; }
+  .grid-bg { background-image:linear-gradient(rgba(148,163,184,.045) 1px, transparent 1px),
+             linear-gradient(90deg, rgba(148,163,184,.045) 1px, transparent 1px); background-size:52px 52px; }
+  .orb { position:fixed; left:0; top:0; width:46vmin; height:46vmin; border-radius:9999px;
+         filter:blur(95px); opacity:.42; pointer-events:none; z-index:0; }
+  .slide { position:absolute; inset:0; width:100%; height:100vh; height:100dvh; z-index:1;
+           display:flex; align-items:center; justify-content:center; padding:3.5rem 1.5rem 4.5rem;
+           overflow-y:auto; scrollbar-width:none; visibility:hidden; opacity:0; pointer-events:none; perspective:1200px; }
+  .slide::-webkit-scrollbar { display:none; }
+  .slide.is-active { pointer-events:auto; }
+  .inner { width:100%; max-width:72rem; margin:auto; transform-style:preserve-3d; will-change:transform, opacity; }
+  .card { background:rgba(255,255,255,.045); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+          border:1px solid rgba(255,255,255,.09); border-radius:1rem; padding:1.5rem;
+          box-shadow:0 25px 50px -12px rgba(0,0,0,.65); transition:border-color .3s, background .3s; }
+  .card:hover { border-color:rgba(249,115,22,.5); background:rgba(255,255,255,.07); }
+  .grad { background:linear-gradient(90deg, #f97316, #fbbf24 45%, #06b6d4); -webkit-background-clip:text;
+          background-clip:text; color:transparent; }
+  .tag { font-size:.72rem; letter-spacing:.24em; text-transform:uppercase; color:var(--neon); font-weight:600; }
+  .ic { width:1.5rem; height:1.5rem; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; flex-shrink:0; }
+  .ic.lg { width:2.3rem; height:2.3rem; }
+  .arr-up { color:var(--fire); filter:drop-shadow(0 0 6px rgba(249,115,22,.9)); }
+  .arr-down { color:var(--neon); filter:drop-shadow(0 0 6px rgba(6,182,212,.9)); }
+  .dot { width:8px; height:8px; border-radius:9999px; background:rgba(148,163,184,.35); transition:all .35s; cursor:pointer; }
+  .dot.on { width:28px; background:var(--fire); box-shadow:0 0 10px var(--fire); }
+  #progress { box-shadow:0 0 14px var(--neon); }
+  .btn { height:2.5rem; padding:0 1.1rem; border-radius:9999px; font-size:.85rem; transition:all .25s; }
+  .btn:disabled { opacity:.3; cursor:not-allowed; }
+</style>
+</head>
+<body class="grid-bg">
+
+<!-- Biểu tượng SVG -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-flame" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 5v14M19 12l-7 7-7-7"/></symbol>
+  <symbol id="i-right" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
+  <symbol id="i-ship" viewBox="0 0 24 24"><path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1 .6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M19.4 18A11.6 11.6 0 0 0 21 12l-9-4-9 4c0 2.3.6 4.3 1.6 6M19 11V6a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v5M12 8V2"/></symbol>
+  <symbol id="i-plane" viewBox="0 0 24 24"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></symbol>
+  <symbol id="i-cart" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 1.95-1.57L23 6H6"/></symbol>
+  <symbol id="i-dollar" viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></symbol>
+  <symbol id="i-drop" viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></symbol>
+  <symbol id="i-fuel" viewBox="0 0 24 24"><path d="M3 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18M3 22h12M15 10h2a2 2 0 0 1 2 2v4a2 2 0 0 0 4 0V8l-3-3"/><path d="M6 8h6"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></symbol>
+  <symbol id="i-wind" viewBox="0 0 24 24"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></symbol>
+  <symbol id="i-zap" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol>
+  <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></symbol>
+</svg>
+
+<!-- Hai khối cầu sáng nền -->
+<div class="orb" id="o1" style="background:#f97316"></div>
+<div class="orb" id="o2" style="background:#06b6d4"></div>
+
+<!-- Thanh tiến trình -->
+<div class="fixed bottom-0 left-0 w-full h-[3px] bg-white/10 z-50">
+  <div id="progress" class="h-full" style="width:0;background:linear-gradient(90deg,#f97316,#06b6d4)"></div>
+</div>
+
+<main class="relative w-full h-screen">
+
+  <!-- ===== SLIDE 1: TIÊU ĐỀ ===== -->
+  <section class="slide">
+    <div class="inner grid lg:grid-cols-5 gap-10 items-center">
+      <div class="lg:col-span-3">
+        <div class="rv tag flex items-center gap-2 mb-5" style="color:var(--fire)"><svg class="ic"><use href="#i-flame"/></svg> Báo cáo thị trường năng lượng · 11/2026</div>
+        <h1 class="rv text-[clamp(2.3rem,5.6vw,4.8rem)] font-extrabold leading-[1.06]">Biến động giá<br><span class="grad">xăng dầu thế giới</span></h1>
+        <p class="rv text-slate-400 text-[clamp(1rem,1.5vw,1.2rem)] mt-6 max-w-xl leading-relaxed">Khi một eo biển quyết định giá năng lượng toàn cầu: nguồn gốc cú sốc 2026, những con số đáng chú ý và con đường phía trước.</p>
+        <div class="rv flex flex-wrap gap-3 mt-8">
+          <span class="px-4 py-2 rounded-full border border-white/10 bg-white/5 text-sm text-slate-300">Brent · WTI</span>
+          <span class="px-4 py-2 rounded-full border border-white/10 bg-white/5 text-sm text-slate-300">Hormuz · OPEC+</span>
+          <span class="px-4 py-2 rounded-full border border-white/10 bg-white/5 text-sm text-slate-300">Logistics · Năng lượng xanh</span>
+        </div>
+        <p class="rv text-slate-500 text-sm mt-8">Nhấn <b class="text-slate-300">→</b> hoặc <b class="text-slate-300">Space</b> để bắt đầu</p>
+      </div>
+      <div class="lg:col-span-2 flex justify-center">
+        <div class="rv relative w-[min(78vw,22rem)] aspect-square">
+          <svg viewBox="0 0 220 220" class="w-full h-full">
+            <defs><linearGradient id="gg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f97316"/><stop offset="1" stop-color="#06b6d4"/></linearGradient></defs>
+            <circle id="ring" cx="110" cy="110" r="106" fill="none" stroke="#06b6d4" stroke-opacity=".55" stroke-width="1.5" stroke-dasharray="2 9" stroke-linecap="round"/>
+            <circle cx="110" cy="110" r="90" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="12"/>
+            <circle id="gauge" cx="110" cy="110" r="90" fill="none" stroke="url(#gg)" stroke-width="12" stroke-linecap="round" transform="rotate(-90 110 110)"/>
+          </svg>
+          <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+            <span class="text-slate-400 text-xs tracking-[.2em] uppercase">Brent 5/11</span>
+            <span class="text-[clamp(2.6rem,6vw,3.8rem)] font-extrabold leading-none mt-1" data-count="99.5" data-dec="1">99,5</span>
+            <span class="text-slate-400 text-sm mt-1">USD / thùng</span>
+            <span class="mt-3 text-xs px-3 py-1 rounded-full border border-white/10 bg-white/5 text-slate-300">trước chiến sự: ~70–73</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SLIDE 2: CON SỐ THỰC TRẠNG ===== -->
+  <section class="slide">
+    <div class="inner">
+      <p class="rv tag mb-2">Con số thực trạng</p>
+      <h2 class="rv text-[clamp(1.8rem,3.8vw,3rem)] font-bold mb-3">Dầu quanh mốc 100 USD: <span class="grad">giằng co từng phiên</span></h2>
+      <div class="rv flex items-center gap-5 text-sm text-slate-400 mb-6">
+        <span class="flex items-center gap-1.5"><svg class="ic arr-up" style="width:1.1rem;height:1.1rem"><use href="#i-up"/></svg> Tăng</span>
+        <span class="flex items-center gap-1.5"><svg class="ic arr-down" style="width:1.1rem;height:1.1rem"><use href="#i-down"/></svg> Giảm</span>
+        <span class="text-slate-500">· đơn vị USD/thùng, số liệu đến 5/11/2026</span>
+      </div>
+      <div class="grid grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="rv card"><p class="text-slate-400 text-sm">Brent · sáng 5/11</p>
+          <div class="flex items-end justify-between mt-2"><span class="text-[clamp(2rem,4vw,3rem)] font-extrabold" data-count="99.52" data-dec="2">99,52</span><svg class="ic lg arr-down"><use href="#i-down"/></svg></div>
+          <p class="text-sm mt-2" style="color:var(--neon)">−6,0% so với hôm trước</p></div>
+        <div class="rv card"><p class="text-slate-400 text-sm">Brent · chốt phiên 3/11</p>
+          <div class="flex items-end justify-between mt-2"><span class="text-[clamp(2rem,4vw,3rem)] font-extrabold" data-count="103.6" data-dec="2">103,60</span><svg class="ic lg arr-down"><use href="#i-down"/></svg></div>
+          <p class="text-sm mt-2" style="color:var(--neon)">−1,1% · thấp nhất từ 7/10</p></div>
+        <div class="rv card"><p class="text-slate-400 text-sm">WTI · chốt phiên 3/11</p>
+          <div class="flex items-end justify-between mt-2"><span class="text-[clamp(2rem,4vw,3rem)] font-extrabold" data-count="96.09" data-dec="2">96,09</span><svg class="ic lg arr-down"><use href="#i-down"/></svg></div>
+          <p class="text-sm mt-2" style="color:var(--neon)">Thấp nhất gần 4 tuần</p></div>
+        <div class="rv card"><p class="text-slate-400 text-sm">Tuần đầu tháng 11 (Brent)</p>
+          <div class="flex items-end justify-between mt-2"><span class="text-[clamp(2rem,4vw,3rem)] font-extrabold" data-count="18" data-dec="0" data-prefix="−" data-suffix="%">−18%</span><svg class="ic lg arr-down"><use href="#i-down"/></svg></div>
+          <p class="text-sm mt-2" style="color:var(--neon)">Hy vọng hòa đàm kéo giá xuống</p></div>
+        <div class="rv card"><p class="text-slate-400 text-sm">So với cùng kỳ năm 2025</p>
+          <div class="flex items-end justify-between mt-2"><span class="text-[clamp(2rem,4vw,3rem)] font-extrabold" data-count="55" data-dec="0" data-prefix="+" data-suffix="%">+55%</span><svg class="ic lg arr-up"><use href="#i-up"/></svg></div>
+          <p class="text-sm mt-2" style="color:var(--fire)">Từ ~64 lên ~99,5 USD</p></div>
+        <div class="rv card"><p class="text-slate-400 text-sm">Đỉnh trong phiên · 30/4/2026</p>
+          <div class="flex items-end justify-between mt-2"><span class="text-[clamp(2rem,4vw,3rem)] font-extrabold" data-count="126" data-dec="0">126</span><svg class="ic lg arr-up"><use href="#i-up"/></svg></div>
+          <p class="text-sm mt-2" style="color:var(--fire)">Gần gấp đôi đầu năm</p></div>
+      </div>
+      <p class="rv text-slate-500 text-xs mt-5">Nguồn tổng hợp: Fortune, Reuters, CNN. Giá dầu vật chất (Dated Brent) từng lên khoảng 141 USD đầu tháng 4.</p>
+    </div>
+  </section>
+
+  <!-- ===== SLIDE 3: NGUYÊN NHÂN ===== -->
+  <section class="slide">
+    <div class="inner">
+      <p class="rv tag mb-2">Nguyên nhân cốt lõi</p>
+      <h2 class="rv text-[clamp(1.8rem,3.8vw,3rem)] font-bold mb-7">Địa chính trị đang <span class="grad">lấn át cả OPEC+</span></h2>
+      <div class="grid lg:grid-cols-5 gap-5">
+        <div class="rv card lg:col-span-3">
+          <div class="flex items-center gap-4"><span style="color:var(--fire)"><svg class="ic lg"><use href="#i-globe"/></svg></span>
+            <h3 class="text-xl md:text-2xl font-semibold">Trung Đông &amp; eo biển Hormuz</h3></div>
+          <p class="text-slate-400 mt-4 leading-relaxed">Từ 28/2, chiến sự Mỹ-Israel-Iran khiến Iran siết gần như toàn bộ tuyến tàu qua Hormuz. IEA gọi đây là gián đoạn nguồn cung lớn nhất lịch sử.</p>
+          <div class="grid grid-cols-3 gap-3 mt-6 text-center">
+            <div class="rounded-xl bg-white/5 border border-white/10 p-3"><p class="text-2xl md:text-3xl font-extrabold" style="color:var(--fire)">~20%</p><p class="text-xs text-slate-400 mt-1">dầu &amp; LNG toàn cầu</p></div>
+            <div class="rounded-xl bg-white/5 border border-white/10 p-3"><p class="text-2xl md:text-3xl font-extrabold" style="color:var(--neon)">~12</p><p class="text-xs text-slate-400 mt-1">triệu thùng/ngày ngưng trệ</p></div>
+            <div class="rounded-xl bg-white/5 border border-white/10 p-3"><p class="text-2xl md:text-3xl font-extrabold" style="color:var(--fire)">1 chữ số</p><p class="text-xs text-slate-400 mt-1">tàu dầu/ngày qua eo biển</p></div>
+          </div>
+        </div>
+        <div class="lg:col-span-2 grid gap-5">
+          <div class="rv card"><div class="flex items-center gap-3"><span style="color:var(--neon)"><svg class="ic lg"><use href="#i-drop"/></svg></span><h3 class="text-lg font-semibold">Chính sách OPEC+</h3></div>
+            <p class="text-slate-400 text-sm mt-3 leading-relaxed">UAE rút khỏi OPEC+ và muốn tự đáp ứng thị trường. Khi Hormuz tắc, hạn ngạch sản lượng trở nên thứ yếu so với đường vận chuyển.</p></div>
+          <div class="rv card"><div class="flex items-center gap-3"><span style="color:var(--fire)"><svg class="ic lg"><use href="#i-alert"/></svg></span><h3 class="text-lg font-semibold">Giá chạy theo tiêu đề</h3></div>
+            <p class="text-slate-400 text-sm mt-3 leading-relaxed">Tàu bị tấn công thì giá vọt, tín hiệu hòa đàm Iran và Ukraine thì giá lao dốc.</p></div>
+        </div>
+      </div>
+      <div class="rv card mt-5 !py-4 flex items-center justify-between gap-2 overflow-x-auto text-center text-sm">
+        <div class="min-w-[5.5rem]"><p class="font-bold" style="color:var(--fire)">28/2</p><p class="text-slate-400 text-xs">Chiến sự bùng nổ</p></div>
+        <svg class="ic text-slate-600"><use href="#i-right"/></svg>
+        <div class="min-w-[5.5rem]"><p class="font-bold" style="color:var(--fire)">20/3</p><p class="text-slate-400 text-xs">Brent &gt; 112</p></div>
+        <svg class="ic text-slate-600"><use href="#i-right"/></svg>
+        <div class="min-w-[5.5rem]"><p class="font-bold" style="color:var(--fire)">30/4</p><p class="text-slate-400 text-xs">Đỉnh &gt; 126</p></div>
+        <svg class="ic text-slate-600"><use href="#i-right"/></svg>
+        <div class="min-w-[5.5rem]"><p class="font-bold" style="color:var(--neon)">3/11</p><p class="text-slate-400 text-xs">103,6 · tin hòa đàm</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SLIDE 4: HỆ LỤY DOMINO ===== -->
+  <section class="slide">
+    <div class="inner">
+      <p class="rv tag mb-2">Hệ lụy domino</p>
+      <h2 class="rv text-[clamp(1.8rem,3.8vw,3rem)] font-bold mb-8">Một eo biển tắc, <span class="grad">cả nền kinh tế rung chuyển</span></h2>
+      <div class="flex flex-col lg:flex-row items-stretch gap-3">
+        <div class="rv domino card flex-1"><span style="color:var(--fire)"><svg class="ic lg"><use href="#i-ship"/></svg></span>
+          <h3 class="font-semibold text-lg mt-3">Hormuz tắc nghẽn</h3>
+          <p class="text-slate-400 text-sm mt-2 leading-relaxed">Lượng tàu dầu qua eo biển tụt xuống một chữ số mỗi ngày.</p></div>
+        <div class="rv hidden lg:flex items-center"><svg class="ic" style="color:var(--neon)"><use href="#i-right"/></svg></div>
+        <div class="rv domino card flex-1"><span style="color:var(--neon)"><svg class="ic lg"><use href="#i-dollar"/></svg></span>
+          <h3 class="font-semibold text-lg mt-3">Cước biển &amp; bảo hiểm</h3>
+          <p class="text-2xl font-extrabold mt-2" style="color:var(--fire)">~49 USD<span class="text-xs text-slate-400 font-medium">/thùng</span></p>
+          <p class="text-slate-400 text-xs mt-1">gần 1/3 giá dầu, so với ~3% bình thường</p></div>
+        <div class="rv hidden lg:flex items-center"><svg class="ic" style="color:var(--neon)"><use href="#i-right"/></svg></div>
+        <div class="rv domino card flex-1"><span style="color:var(--fire)"><svg class="ic lg"><use href="#i-fuel"/></svg></span>
+          <h3 class="font-semibold text-lg mt-3">Nhiên liệu vận tải</h3>
+          <p class="text-slate-400 text-sm mt-2 leading-relaxed">Đầu tháng 4, diesel châu Âu ~204 và nhiên liệu bay ~226 USD/thùng.</p></div>
+        <div class="rv hidden lg:flex items-center"><svg class="ic" style="color:var(--neon)"><use href="#i-right"/></svg></div>
+        <div class="rv domino card flex-1"><span style="color:var(--neon)"><svg class="ic lg"><use href="#i-plane"/></svg></span>
+          <h3 class="font-semibold text-lg mt-3">Vé &amp; hàng hóa</h3>
+          <p class="text-slate-400 text-sm mt-2 leading-relaxed">AirAsia X từng tăng vé tới 40%; Ryanair cảnh báo vé châu Âu có thể tăng đến 20% năm 2027.</p></div>
+        <div class="rv hidden lg:flex items-center"><svg class="ic" style="color:var(--neon)"><use href="#i-right"/></svg></div>
+        <div class="rv domino card flex-1"><span style="color:var(--fire)"><svg class="ic lg"><use href="#i-cart"/></svg></span>
+          <h3 class="font-semibold text-lg mt-3">Giá tiêu dùng</h3>
+          <p class="text-2xl font-extrabold mt-2" style="color:var(--fire)">4,6–4,7%</p>
+          <p class="text-slate-400 text-xs mt-1">lạm phát toàn cầu 2026 (dự báo), tăng từ 3,6%</p></div>
+      </div>
+      <p class="rv text-slate-500 text-sm mt-6">Hóa đơn nhập khẩu nhiên liệu hóa thạch toàn cầu đã tăng thêm hơn 330 tỷ USD sau nửa năm khủng hoảng.</p>
+    </div>
+  </section>
+
+  <!-- ===== SLIDE 5: TẦM NHÌN TƯƠNG LAI ===== -->
+  <section class="slide">
+    <div class="inner">
+      <p class="rv tag mb-2">Tầm nhìn tương lai</p>
+      <h2 class="rv text-[clamp(1.8rem,3.8vw,3rem)] font-bold mb-8">Chuyển dịch xanh không còn là lựa chọn, mà là <span class="grad">an ninh năng lượng</span></h2>
+      <div class="grid lg:grid-cols-5 gap-5">
+        <div class="lg:col-span-2 grid gap-4">
+          <div class="rv card"><p class="text-slate-400 text-sm">IEA: cầu dầu thế giới 2026</p>
+            <p class="text-4xl font-extrabold mt-1" style="color:var(--neon)">−2,6 <span class="text-base text-slate-400 font-medium">triệu thùng/ngày</span></p>
+            <p class="text-slate-400 text-sm mt-2">Giá cao đang buộc thế giới tiêu thụ ít dầu đi.</p></div>
+          <div class="rv card"><p class="text-slate-400 text-sm">Triển vọng ngắn hạn</p>
+            <p class="text-slate-300 text-sm mt-2 leading-relaxed"><b style="color:var(--neon)">Hòa đàm:</b> Hormuz mở lại dần, giá hạ nhiệt.<br><b style="color:var(--fire)">Leo thang:</b> thêm tấn công hạ tầng, giá bật tăng.<br>Goldman Sachs nâng dự báo Brent tháng 12 lên 105 USD.</p></div>
+        </div>
+        <div class="lg:col-span-3 grid grid-cols-2 gap-4">
+          <div class="rv card"><span style="color:var(--fire)"><svg class="ic lg"><use href="#i-sun"/></svg></span><h3 class="font-semibold text-lg mt-3">Điện mặt trời</h3><p class="text-slate-400 text-sm mt-1">Nguồn nội địa, không đi qua eo biển nào.</p></div>
+          <div class="rv card"><span style="color:var(--neon)"><svg class="ic lg"><use href="#i-wind"/></svg></span><h3 class="font-semibold text-lg mt-3">Điện gió</h3><p class="text-slate-400 text-sm mt-1">Giảm phụ thuộc nhiên liệu nhập khẩu.</p></div>
+          <div class="rv card"><span style="color:var(--neon)"><svg class="ic lg"><use href="#i-zap"/></svg></span><h3 class="font-semibold text-lg mt-3">Xe điện &amp; lưu trữ</h3><p class="text-slate-400 text-sm mt-1">Cắt cầu xăng dầu ở khâu giao thông.</p></div>
+          <div class="rv card"><span style="color:var(--fire)"><svg class="ic lg"><use href="#i-shield"/></svg></span><h3 class="font-semibold text-lg mt-3">Dự trữ &amp; đa dạng nguồn</h3><p class="text-slate-400 text-sm mt-1">Nhiều nhà cung cấp, nhiều tuyến đường.</p></div>
+        </div>
+      </div>
+      <div class="rv card mt-5 text-center !py-5">
+        <p class="text-lg md:text-xl flex items-center justify-center gap-3 flex-wrap"><span style="color:var(--neon)"><svg class="ic"><use href="#i-leaf"/></svg></span>
+          Mỗi cú sốc dầu mỏ nhắc ta rằng <span class="grad font-bold">bớt phụ thuộc vào một nguồn, một tuyến đường</span> là con đường bền vững nhất. Cảm ơn quý vị đã lắng nghe!</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Điều khiển -->
+<div id="count" class="fixed bottom-6 left-5 z-50 text-xs text-slate-500 tabular-nums"></div>
+<div id="dots" class="fixed bottom-7 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2"></div>
+<nav class="fixed bottom-4 right-4 z-50 flex items-center gap-2">
+  <button id="prev" class="btn bg-white/5 backdrop-blur-md border border-white/10 hover:border-orange-500/60 hover:bg-white/10">← Quay lại</button>
+  <button id="next" class="btn bg-orange-500 text-slate-950 font-semibold hover:bg-orange-400">Tiếp theo →</button>
+</nav>
+
+<script>
+  const slides = [...document.querySelectorAll('.slide')];
+  const N = slides.length;
+  const o1 = document.getElementById('o1'), o2 = document.getElementById('o2');
+  const progress = document.getElementById('progress');
+  const dotsBox = document.getElementById('dots');
+  const prevBtn = document.getElementById('prev'), nextBtn = document.getElementById('next');
+  const countEl = document.getElementById('count');
+  let cur = -1, busy = false;
+
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) gsap.globalTimeline.timeScale(3);
+
+  // Vị trí & màu của hai khối cầu theo từng slide
+  const orbStates = [
+    { a:{x:'4vw',  y:'-12vh', c:'#f97316'}, b:{x:'58vw', y:'52vh', c:'#06b6d4'} },
+    { a:{x:'56vw', y:'-8vh',  c:'#06b6d4'}, b:{x:'-6vw', y:'55vh', c:'#f97316'} },
+    { a:{x:'38vw', y:'38vh',  c:'#ea580c'}, b:{x:'66vw', y:'-12vh', c:'#0ea5e9'} },
+    { a:{x:'-8vw', y:'28vh',  c:'#f97316'}, b:{x:'52vw', y:'48vh', c:'#0891b2'} },
+    { a:{x:'50vw', y:'6vh',   c:'#22d3ee'}, b:{x:'2vw',  y:'50vh', c:'#10b981'} }
+  ];
+
+  // Chấm chỉ số trang
+  slides.forEach((_, i) => {
+    const d = document.createElement('span');
+    d.className = 'dot'; d.title = 'Slide ' + (i + 1);
+    d.onclick = () => go(i);
+    dotsBox.appendChild(d);
+  });
+
+  // Đếm số tăng dần cho các phần tử [data-count]
+  function countUp(slide, tl, at) {
+    slide.querySelectorAll('[data-count]').forEach(el => {
+      const target = parseFloat(el.dataset.count), dec = parseInt(el.dataset.dec || '0', 10);
+      const pre = el.dataset.prefix || '', suf = el.dataset.suffix || '';
+      const obj = { v: 0 };
+      el.textContent = pre + (0).toFixed(dec).replace('.', ',') + suf;
+      tl.to(obj, { v: target, duration: 1.4, ease: 'power2.out',
+        onUpdate: () => { el.textContent = pre + obj.v.toLocaleString('vi-VN', { minimumFractionDigits: dec, maximumFractionDigits: dec }) + suf; }
+      }, at);
+    });
+  }
+
+  // Hiệu ứng riêng cho từng slide
+  const circ = 2 * Math.PI * 90;
+  const extras = {
+    0: (tl, t) => {
+      gsap.set('#gauge', { attr: { 'stroke-dasharray': circ, 'stroke-dashoffset': circ } });
+      tl.to('#gauge', { attr: { 'stroke-dashoffset': circ * (1 - 99.5 / 130) }, duration: 1.8, ease: 'power3.out' }, t + 0.2);
+    },
+    3: (tl, t) => {
+      const d = gsap.utils.toArray('.domino');
+      d.forEach((el, k) => {
+        tl.to(el, { scale: 1.05, borderColor: 'rgba(249,115,22,.9)', duration: .25, yoyo: true, repeat: 1, ease: 'power2.inOut' }, t + 1.1 + k * 0.28);
+      });
+    }
+  };
+
+  function go(i) {
+    if (busy || i === cur || i < 0 || i >= N) return;
+    busy = true;
+    const dir = i > cur ? 1 : -1;
+    const out = cur >= 0 ? slides[cur] : null, inn = slides[i];
+    const inner = inn.querySelector('.inner'), items = inn.querySelectorAll('.rv');
+    const t = out ? 0.45 : 0;
+
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out' }, onComplete: () => {
+      if (out) { gsap.set(out, { autoAlpha: 0 }); out.classList.remove('is-active'); }
+      cur = i; busy = false;
+    }});
+
+    // Slide cũ: bay lên / thu nhỏ ra sau và mờ dần
+    if (out) {
+      tl.to(out.querySelector('.inner'), { y: -110 * dir, scale: dir > 0 ? 0.88 : 1.12, rotationX: dir > 0 ? 10 : -10,
+        opacity: 0, duration: 0.65, ease: 'power3.in' }, 0);
+      tl.to(out.querySelectorAll('.rv'), { y: -30 * dir, opacity: 0, duration: 0.4, stagger: 0.02, ease: 'power2.in' }, 0);
+    }
+
+    // Slide mới: phóng to từ 0.85, xoay nhẹ rồi trả thẳng, các phần tử xuất hiện đuổi nhau
+    gsap.set(inner, { transformPerspective: 1200, scale: 0.85, rotation: 2.5 * dir, rotationX: 8 * dir, y: 0, opacity: 0 });
+    gsap.set(items, { y: 50, opacity: 0 });
+    tl.set(inn, { autoAlpha: 1 }, t);
+    tl.call(() => inn.classList.add('is-active'), null, t);
+    tl.to(inner, { scale: 1, rotation: 0, rotationX: 0, opacity: 1, duration: 1, ease: 'expo.out' }, t);
+    tl.to(items, { y: 0, opacity: 1, duration: 0.8, stagger: 0.08, ease: 'power3.out' }, t + 0.15);
+    countUp(inn, tl, t + 0.35);
+    if (extras[i]) extras[i](tl, t);
+
+    // Hai khối cầu sáng trượt và đổi màu
+    const s = orbStates[i];
+    tl.to(o1, { x: s.a.x, y: s.a.y, backgroundColor: s.a.c, duration: 1.8, ease: 'power2.inOut' }, 0);
+    tl.to(o2, { x: s.b.x, y: s.b.y, backgroundColor: s.b.c, duration: 1.8, ease: 'power2.inOut' }, 0);
+
+    // Thanh tiến trình, chấm trang, nút
+    gsap.to(progress, { width: ((i + 1) / N * 100) + '%', duration: 0.9, ease: 'power2.out' });
+    [...dotsBox.children].forEach((d, k) => d.classList.toggle('on', k === i));
+    countEl.textContent = (i + 1) + ' / ' + N;
+    prevBtn.disabled = i === 0;
+    nextBtn.disabled = i === N - 1;
+    history.replaceState(null, '', '#' + (i + 1));
+  }
+
+  prevBtn.onclick = () => go(cur - 1);
+  nextBtn.onclick = () => go(cur + 1);
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || (e.key === ' ' && !e.shiftKey)) { e.preventDefault(); go(cur + 1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp' || (e.key === ' ' && e.shiftKey)) { e.preventDefault(); go(cur - 1); }
+    else if (e.key === 'Home') go(0);
+    else if (e.key === 'End') go(N - 1);
+    else if (e.key.toLowerCase() === 'f') {
+      document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+    }
+  });
+
+  // Vuốt trên màn hình cảm ứng
+  let x0 = 0;
+  document.addEventListener('touchstart', e => { x0 = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - x0;
+    if (Math.abs(dx) > 60) go(dx < 0 ? cur + 1 : cur - 1);
+  });
+
+  // Khởi tạo
+  gsap.set(slides, { autoAlpha: 0 });
+  const startIdx = Math.min(N - 1, Math.max(0, (parseInt(location.hash.slice(1), 10) || 1) - 1));
+  gsap.set(o1, { x: orbStates[startIdx].a.x, y: orbStates[startIdx].a.y, backgroundColor: orbStates[startIdx].a.c });
+  gsap.set(o2, { x: orbStates[startIdx].b.x, y: orbStates[startIdx].b.y, backgroundColor: orbStates[startIdx].b.c });
+  go(startIdx);
+
+  // Chuyển động nền liên tục
+  gsap.to('.orb', { scale: 1.18, duration: 5, yoyo: true, repeat: -1, ease: 'sine.inOut', stagger: 1.6 });
+  gsap.to('#ring', { rotation: 360, transformOrigin: '50% 50%', duration: 40, repeat: -1, ease: 'none' });
+  gsap.to('.arr-up',   { y: -5, duration: 0.8, yoyo: true, repeat: -1, ease: 'sine.inOut' });
+  gsap.to('.arr-down', { y:  5, duration: 0.8, yoyo: true, repeat: -1, ease: 'sine.inOut' });
+</script>
+</body>
+</html>
